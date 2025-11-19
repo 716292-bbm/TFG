@@ -82,9 +82,7 @@ def integral_exp(E_i,E_f,masa_det,dias,signif=0.9, array_det=np.ones(9,dtype=int
         if(array_det[i]==1):
             for j in range(int(10*(E_i-1)),int(10*(E_f-1))):
                 ritmos_exp[i]+=datos[2*i+1][j]
-                errores_exp[i]+=datos[2*i+2][j]*datos[2*i+2][j]
-            ritmos_exp[i]=ritmos_exp[i]*0.1
-            errores_exp[i]=np.sqrt(errores_exp[i])*0.1
+            ritmos_exp[i]=ritmos_exp[i]*0.1*12.5*
 
     ritmo_exp=0
     error_exp=0

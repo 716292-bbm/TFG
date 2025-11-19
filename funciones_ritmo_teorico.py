@@ -99,21 +99,21 @@ def FF(E,A):
     return F2
 
 #################
-# Ritmo diferencial
+# Ritmo diferencial  [cts/KeV/y/kg]
 # E en keV
 # A: numero masico
 # mW: Masa del Wimp en GeV/c^2
 # sigmaSI: Seccion eficaz spin independent en cm^2
 #################
 def rate(E,t,A,mW,sigmaSI):
-    mN=A*mn
-    Mdet=NA*mN*1000 # GeV/c2/kg
-    mu_n=mW*mn/(mW+mn)
-    retval=Mdet*rho/2./mW*A*A/mu_n/mu_n*sigmaSI*c*c
-    retval*=8.64e-3 # to convert to counts/kg/keV/d
-    retval*=365 # convert to counts/kg/keV/y
-    retval*=FF(E,A)
-    retval*=eta(E,t,A,mW)
+    Mdet=1000*NA*mn                                 # masa de 1 kg de detector [GeV/c^2]
+    mu_n=mW*mn/(mW+mn)                              # masa reducida del sistema nucleon-WIMP [Gev/c^2]
+    retval=Mdet*rho/2./mW/mu_n/mu_n*A*A*sigmaSI     # Producto de los primeros terminos [cts*c^2/Gev/cm/kg]
+    retval*=c*c                                     # Conversion a 100*[cts*m/s^2/Gev/kg]
+    retval*=FF(E,A)                                 # Multiplicamos por factor de forma atomico (Adimensional) 100*[cts*m/s^2/Gev/kg]
+    retval*=eta(E,t,A,mW)                           # Multiplicamos por integral 0.1*[cts/GeV/s/kg]
+    retval*=8.64e-3                                 # Convertimos a [cts/KeV/d/kg]
+    retval*=365                                     # Convertimos a [cts/KeV/y/kg]
     return retval
 
 #########################
@@ -148,17 +148,16 @@ def ratevsTime(Ei,Ef,A,mW,sigmaSI):
 
 #########################
 #########################
-# Ritmo en funcon del tiempo
-# Ei, Ef: Energias inicial y final en keV
+# Ritmo diferencial
+# E en keV
 # t: tiempo en dias desde el 22 de marzo
-# A: numero masico
 # mW: Masa del Wimp en GeV/c^2
 # sigmaSI: Seccion eficaz spin independent en cm^2
-def ratevsTimeNaI(Ei,Ef,mW,sigmaSI):
-    dias = np.arange(0,365)
-    ritmos_dias=([totalRateNaI(Ei,Ef,t,mW,sigmaSI) for t in dias])
-    return ritmos_dias
-       
+def RateNaI(E,t,mW,sigmaSI):
+    ratesNa=rate(E,t,23,mW,sigmaSI)
+    ratesI=rate(E,t,127,mW,sigmaSI)
+    return (23.*ratesNa+127.*ratesI)/(23.+127.)
+
 #########################
 #########################
 # Ritmo total, integrado entre Ei y Ef (en c/kg/y)
@@ -174,15 +173,19 @@ def totalRateNaI(Ei,Ef,t,mW,sigmaSI):
 
 #########################
 #########################
-# Ritmo diferencial
-# E en keV
+# Ritmo en funcon del tiempo
+# Ei, Ef: Energias inicial y final en keV
 # t: tiempo en dias desde el 22 de marzo
+# A: numero masico
 # mW: Masa del Wimp en GeV/c^2
 # sigmaSI: Seccion eficaz spin independent en cm^2
-def RateNaI(E,t,mW,sigmaSI):
-    ratesNa=rate(E,t,23,mW,sigmaSI)
-    ratesI=rate(E,t,127,mW,sigmaSI)
-    return (23.*ratesNa+127.*ratesI)/(23.+127.)
+def ratevsTimeNaI(Ei,Ef,mW,sigmaSI):
+    dias = np.arange(0,365)
+    ritmos_dias=([totalRateNaI(Ei,Ef,t,mW,sigmaSI) for t in dias])
+    return ritmos_dias
+       
+
+
 
 
 # FUNCIONES TENIENDO EN CUENTA EL FACTOR QUENCHING
@@ -245,14 +248,7 @@ def getQFI(ee, p0=0.03, p1=0.0006, limit=80.0, N=200, ER_min=1.0, ER_max=100.0):
 #################
 def rate_ee(Eee,t,A,mW,sigmaSI,Q=1):
     E=Eee/Q
-    mN=A*mn
-    Mdet=NA*mN*1000 # GeV/c2/kg
-    mu_n=mW*mn/(mW+mn)
-    retval=Mdet*rho/2./mW*A*A/mu_n/mu_n*sigmaSI*c*c
-    retval*=8.64e-3 # to convert to counts/kg/keV/d
-    retval*=365 # convert to counts/kg/keV/y
-    retval*=FF(E,A)
-    retval*=eta(E,t,A,mW)
+    retval=rate(E,t,A,mW,sigmaSI)
     retval/=Q
     return retval
 
