@@ -123,13 +123,21 @@ def numero_cuentas_exp_CL(E_i,E_f,cl=0.9,array_det=np.ones(9,dtype=int)):
 
     exposiciones=carga_exposiciones()
 
+    #print(exposiciones)
+
     ritmos_exp=integral_ritmo_exp(E_i,E_f,datos)
+
+    #print(ritmos_exp)
 
     numero_cuentas=numero_cuentas_exp(ritmos_exp,exposiciones,array_det)
 
+    #print(numero_cuentas)
+
     k=f_significancia(cl)
 
-    retval=numero_cuentas+k*np.sqrt(numero_cuentas)
+    #print(k)
+
+    retval=numero_cuentas+k*m.sqrt(numero_cuentas)
 
     return retval
 

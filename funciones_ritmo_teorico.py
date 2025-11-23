@@ -20,7 +20,8 @@ vesc=544                # Velocidad de escape de la galaxia (km/s)
 #Velocidad del sol
 u1=np.array([ 0.9941, 0.1088, 0.0042])
 u2=np.array([-0.0504, 0.4946, -0.8677])
-v0=np.array([0,238,0])                      # Velocidad en reposo local standar (km/s)
+v0=np.array([0,238,0])      
+v0M=m.sqrt(v0.dot(v0))                      # Velocidad en reposo local standar (km/s)
 v0n=np.sqrt(v0.dot(v0))                     # Norma de la Velocidad en reposo local standar (km/s)
 omega=0.0172                                # Frecuencia angular en d-1 (2pi/365)
 vpec=np.array([11.1,12.2,7.3])              # Velocidad peculiar (km/s)
@@ -54,9 +55,9 @@ def vearth(t):
 # mW: Masa del Wimp en GeV/c^2
 #################
 def vmin(E,A,mW): 
-    res=E*1e-6*(A*mn+mW)*(A*mn+mW)/(2*A*mn*mW*mW)
-    res=np.sqrt(res)*c/1000
-    return res
+    mN=A*mn
+    mu_N=mW*mN/(mW+mN)
+    return m.sqrt(E*mN*1e-6/2./mu_N/mu_N)*c*1e-3 # km/s
 
 #################
 # mean inverse speed function (Función de velocidad inversa media) (en s/km)
@@ -66,17 +67,18 @@ def vmin(E,A,mW):
 # mW: Masa del Wimp en GeV/c^2
 #################
 def eta(E,t,A,mW):
-    x=vmin(E,A,mW)/v0n
-    y=vearth(t)/v0n
-    z=vesc/v0n
-    if(x>(z+y)): 
-        return 0
-    else:
-        N=m.erf(z)-2*z/np.sqrt(np.pi)*m.exp(-z*z)
-        if((x>(z-y)) and ((z+y) >= x)):
-            return 1/(2*y*v0n*N)*(m.erf(z)-m.erf(x-y)-2/np.sqrt(np.pi)*(z+y-x)*np.exp(-z*z))
-        if((x>=(0)) and ((z-y) >= x)):
-            return 1/(2*y*v0n*N)*(m.erf(x+y)-m.erf(x-y)-4/np.sqrt(np.pi)*y*np.exp(-z*z))
+  x=vmin(E,A,mW)/v0M
+  y=vearth(t)/v0M
+  z=vesc/v0M
+  N=m.erf(z)-2*z/sqrtpi*m.exp(-z*z)
+  retval=1./2/y/v0M/N
+  if x > z+y:
+    return 0
+  if x > z-y:
+    retval*=m.erf(z)-m.erf(x-y)-2/sqrtpi*(z+y-x)*m.exp(-z*z)
+  else:
+    retval*=m.erf(x+y)-m.erf(x-y)-4/sqrtpi*y*m.exp(-z*z)
+  return retval
         
 #################
 # Factor de Forma
@@ -84,19 +86,23 @@ def eta(E,t,A,mW):
 # A: Numero másico
 #################
 def FF(E,A):
-    if E==0:
-        E=1e-12
-    s=1
-    R=1.2*A**(0.3333)
-    
-    R1=m.sqrt(R*R-5*s*s)
-    R1*=1e-6/hbar/c
+  if E==0:
+    return 1
+  R=1.2*A**0.3333 # fm
+  s=1 # fm
+  mN=A*mn
+  R1=m.sqrt(R*R-5*s*s) # fm
+  R1*=1e-6/hbar/c
 
-    q2=2*E*A*mn*1e-6
-    x=m.sqrt(q2)*R1
-    aux=q2*s*s*1e-6/hbar/c*1e-6/hbar/c
-    F2=((3*j1(x)/(x))**2)*m.exp(-aux)
-    return F2
+  q=m.sqrt(2*1e-6*mN*E) # GeV
+  x=q*R1
+  #print("mN = " + str(mN) + " E= "+str(E)+ " q="+str(q)+" R1="+str(R1)+" x= " + str(x) + "hbarc= " +str(hbar*c*1e6))
+  retval=m.sin(x)/x/x-m.cos(x)/x
+  retval*=3/x
+  retval*=retval
+  aux=q*s*1e-6/hbar/c
+  retval*=m.exp(-aux*aux)
+  return retval
 
 #################
 # Ritmo diferencial  [cts/KeV/d/kg]
@@ -319,6 +325,23 @@ def totalRate_NaI_ee_DAMA(Eiee,Efee,t,mW,sigmaSI):
 
 def numero_cuentas_teo(Eiee,Efee,t,mW,sigmaSI,texp,mexp):
   retval=totalRate_NaI_ee(Eiee,Efee,t,mW,sigmaSI)
+  retval*=texp
+  retval*=mexp
+
+  return retval
+
+#########################
+#########################
+# Numero de cuentas total, integrado entre Eiee y Efee (en cts)
+# Eiee, Efee: Energías inicial y final en keVee
+# t: tiempo en dias desde el 22 de marzo
+# mW: Masa del Wimp en GeV/c^2
+# sigmaSI: Seccion eficaz spin independent en cm^2
+# texp: Tiempo de exposicion en dias
+# mexp: Masa del detector de NaI en kg
+
+def numero_cuentas_teo_DAMA(Eiee,Efee,t,mW,sigmaSI,texp,mexp):
+  retval=totalRate_NaI_ee_DAMA(Eiee,Efee,t,mW,sigmaSI)
   retval*=texp
   retval*=mexp
 
