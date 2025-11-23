@@ -9,7 +9,7 @@ from scipy.stats import norm
 
 mn=0.9315               # Masa nucleon (GeV/c^2)
 NA=6.022e23             # Numero de Avogadro
-c=299792458             # Velocidad luz (m/)s
+c=3e8                   # Velocidad luz (m/s)
 hbar = 6.582e-16        # eV*s
 sqrtpi=m.sqrt(m.pi)     # Raíz de pi
 
@@ -99,7 +99,7 @@ def FF(E,A):
     return F2
 
 #################
-# Ritmo diferencial  [cts/KeV/y/kg]
+# Ritmo diferencial  [cts/KeV/d/kg]
 # E en keV
 # A: numero masico
 # mW: Masa del Wimp en GeV/c^2
@@ -113,12 +113,12 @@ def rate(E,t,A,mW,sigmaSI):
     retval*=FF(E,A)                                 # Multiplicamos por factor de forma atomico (Adimensional) 100*[cts*m/s^2/Gev/kg]
     retval*=eta(E,t,A,mW)                           # Multiplicamos por integral 0.1*[cts/GeV/s/kg]
     retval*=8.64e-3                                 # Convertimos a [cts/KeV/d/kg]
-    retval*=365                                     # Convertimos a [cts/KeV/y/kg]
+    
     return retval
 
 #########################
 #########################
-# Ritmo total, integrado entre Ei y Ef (en c/kg/y)
+# Ritmo total, integrado entre Ei y Ef (en c/kg/d)
 # Ei, Ef: Energias inicial y final en keV
 # t: tiempo en dias desde el 22 de marzo
 # A: numero masico
@@ -160,7 +160,7 @@ def RateNaI(E,t,mW,sigmaSI):
 
 #########################
 #########################
-# Ritmo total, integrado entre Ei y Ef (en c/kg/y)
+# Ritmo total, integrado entre Ei y Ef (en c/kg/d)
 # Ei, Ef: Energias inicial y final en keV
 # t: tiempo en dias desde el 22 de marzo
 # A: numero masico
@@ -240,7 +240,7 @@ def getQFI(ee, p0=0.03, p1=0.0006, limit=80.0, N=200, ER_min=1.0, ER_max=100.0):
     return y_interp[0] if np.isscalar(ee) else y_interp
 
 #################
-# Ritmo diferencial (Teniendo en cuenta el Quenching, Energía en ee) (en c/kevee/kg/y) 
+# Ritmo diferencial (Teniendo en cuenta el Quenching, Energía en ee) (en c/kevee/kg/d) 
 # E en keV
 # A: numero masico
 # mW: Masa del Wimp en GeV/c^2
@@ -254,7 +254,7 @@ def rate_ee(Eee,t,A,mW,sigmaSI,Q=1):
 
 #########################
 #########################
-# Ritmo diferencial en detector NaI (en c/kevee/kg/y) 
+# Ritmo diferencial en detector NaI (en c/kevee/kg/d) 
 # E: en keVee
 # t: tiempo en dias desde el 22 de marzo
 # mW: Masa del Wimp en GeV/c^2
@@ -270,12 +270,13 @@ def rateNaI_ee(Eee,t,mW,sigmaSI, QNa=1, QI=1):
 
 #########################
 #########################
-# Ritmo total, integrado entre Eiee y Efee (en c/kg/y)
+# Ritmo total, integrado entre Eiee y Efee (en c/kg/d)
 # Eiee, Efee: Energías inicial y final en keVee
 # t: tiempo en dias desde el 22 de marzo
 # A: numero masico
 # mW: Masa del Wimp en GeV/c^2
 # sigmaSI: Seccion eficaz spin independent en cm^2
+
 def totalRate_NaI_ee(Eiee,Efee,t,mW,sigmaSI):
   energy_ee = np.arange(Eiee,Efee,0.1)
   qfNa = getQFNa(energy_ee)
@@ -289,10 +290,9 @@ def totalRate_NaI_ee(Eiee,Efee,t,mW,sigmaSI):
 
 #########################
 #########################
-# Ritmo total, integrado entre Eiee y Efee (en c/kg/y)
+# Ritmo total, integrado entre Eiee y Efee (en c/kg/d)
 # Eiee, Efee: Energías inicial y final en keVee
 # t: tiempo en dias desde el 22 de marzo
-# A: numero masico
 # mW: Masa del Wimp en GeV/c^2
 # sigmaSI: Seccion eficaz spin independent en cm^2
 
@@ -306,3 +306,20 @@ def totalRate_NaI_ee_DAMA(Eiee,Efee,t,mW,sigmaSI):
     ])
 
   return rates.sum()*0.1
+
+#########################
+#########################
+# Numero de cuentas total, integrado entre Eiee y Efee (en cts)
+# Eiee, Efee: Energías inicial y final en keVee
+# t: tiempo en dias desde el 22 de marzo
+# mW: Masa del Wimp en GeV/c^2
+# sigmaSI: Seccion eficaz spin independent en cm^2
+# texp: Tiempo de exposicion en dias
+# mexp: Masa del detector de NaI en kg
+
+def numero_cuentas_teo(Eiee,Efee,t,mW,sigmaSI,texp,mexp):
+  retval=totalRate_NaI_ee(Eiee,Efee,t,mW,sigmaSI)
+  retval*=texp
+  retval*=mexp
+
+  return retval
