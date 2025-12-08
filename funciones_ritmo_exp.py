@@ -34,22 +34,14 @@ def carga_exposiciones():
 
     return exposiciones
 
-def calcula_t_exposicion(array_det=np.ones(9,dtype=int)):
-#  Calculamos el tiempo total de exposicion (dias)
-    exposiciones=carga_exposiciones()
-    dias=0
-    for i in range(9):
-        if(array_det[i]==1):
-            dias+=exposiciones[i]
-    return dias
+def calcula_t_exposicion(det): #  Calculamos el tiempo total de exposicion (dias)
 
-def calcula_m_exposicion(array_det=np.ones(9,dtype=int)):
-#  Calculamos la masa total de exposicion (kg)
-    masa_detector=0
-    for i in range(9):
-            if(array_det[i]==1):
-                masa_detector+=12.5
-    return masa_detector
+    exposiciones=carga_exposiciones()
+    
+    return exposiciones[det]
+
+def calcula_m_exposicion(det): #  Calculamos la masa total de exposicion (kg)        
+    return 12.5
 
 #################
 # Funcion inversa de la CDF de la distribucion gaussiana. (Devuelve el valor del limite superior de la integral gaussiana desde 

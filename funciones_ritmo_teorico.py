@@ -313,6 +313,29 @@ def totalRate_NaI_ee_DAMA(Eiee,Efee,t,mW,sigmaSI):
 
   return rates.sum()*0.1
 
+def carga_exposiciones():
+    exposiciones=np.zeros(9) #dias
+        
+    exposiciones[0]=2031.38
+    exposiciones[1]=2033.20
+    exposiciones[2]=2029.52
+    exposiciones[3]=2022.55
+    exposiciones[4]=2033.01
+    exposiciones[5]=2030.18
+    exposiciones[6]=2032.27 
+    exposiciones[7]=2031.02
+    exposiciones[8]=2020.29
+
+    return exposiciones
+def calcula_t_exposicion(det): #  Calculamos el tiempo total de exposicion (dias)
+
+    exposiciones=carga_exposiciones()
+    
+    return exposiciones[det]
+
+def calcula_m_exposicion(det): #  Calculamos la masa total de exposicion (kg)        
+    return 12.5
+
 #########################
 #########################
 # Numero de cuentas total, integrado entre Eiee y Efee (en cts)
@@ -323,12 +346,16 @@ def totalRate_NaI_ee_DAMA(Eiee,Efee,t,mW,sigmaSI):
 # texp: Tiempo de exposicion en dias
 # mexp: Masa del detector de NaI en kg
 
-def numero_cuentas_teo(Eiee,Efee,t,mW,sigmaSI,texp,mexp):
+def numero_cuentas_teo(Eiee,Efee,t,mW,sigmaSI,array_det=np.ones(9,dtype=int)):
+  Matriz=np.eye(9)
+  exp=0
+  for i in range(9):
+          if(array_det[i]==1):
+            texp=calcula_t_exposicion(i)
+            mexp=calcula_m_exposicion(i)
+            exp+=texp*mexp
   retval=totalRate_NaI_ee(Eiee,Efee,t,mW,sigmaSI)
-  retval*=texp
-  retval*=mexp
-
-  return retval
+  return retval*exp
 
 #########################
 #########################
@@ -340,9 +367,13 @@ def numero_cuentas_teo(Eiee,Efee,t,mW,sigmaSI,texp,mexp):
 # texp: Tiempo de exposicion en dias
 # mexp: Masa del detector de NaI en kg
 
-def numero_cuentas_teo_DAMA(Eiee,Efee,t,mW,sigmaSI,texp,mexp):
+def numero_cuentas_teo_DAMA(Eiee,Efee,t,mW,sigmaSI,array_det=np.ones(9,dtype=int)):
+  Matriz=np.eye(9)
+  exp=0
+  for i in range(9):
+          if(array_det[i]==1):
+            texp=calcula_t_exposicion(i)
+            mexp=calcula_m_exposicion(i)
+            exp+=texp*mexp
   retval=totalRate_NaI_ee_DAMA(Eiee,Efee,t,mW,sigmaSI)
-  retval*=texp
-  retval*=mexp
-
-  return retval
+  return retval*exp
